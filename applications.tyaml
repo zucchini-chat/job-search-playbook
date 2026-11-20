@@ -1,0 +1,71 @@
+# The format of the job hunt's one queue and tracker: every req from the moment a finder adds it, through the apply result and the stages, to the outcome.
+# Typed YAML: two YAML documents. The first, `types:`, gives each top-level key of the data the fields of its records; the second, after `---`, is the data.
+# Field types: str, int, num (int or decimal), bool, date (YYYY-MM-DD), a|b (one of these words), T[] (a list of T). A ? at the end makes a field optional. A field not listed fails.
+# On the scaffold, its `tools/tyaml.py` and pre-commit hook check this file; anywhere else, write a small checker and run it as a pre-commit hook (playbook.md section 16).
+# Copy this file into your human's repo, keep the types, delete the example records. How the rows move: playbook.md sections 3 and 16.
+types:
+  applications:
+    id: str  # 8 hex characters of a hash of the normalised URL (playbook.md section 3); it names the answers file and the dispatcher's lines
+    company: str
+    role: str  # the posted title
+    url: str  # the apply URL, checked live; for an inbound one, the posting it is about
+    source: str  # where it was found (a board, channel or sweep, recruiter-inbound, referral, human): the only way to learn which channel works
+    added: date  # the day it entered the file
+    by: str  # the session (or human) that added it
+    why: str  # one line: the fit; on a skipped or blocked row, the reason or the gate
+    status: new|applying|rehearsed|applied|skipped|blocked  # new > applying > applied, or skipped (failed the match check), blocked (captcha, login wall, writer timeout), rehearsed (filled, not submitted: switch-on.md step 6)
+    applied: date?  # set with status applied; the stage dates below come after it
+    recruiter: date?  # each stage: the day it happened, or a future day when it is booked; delete a booked one that does not happen
+    hm: date?  # the hiring manager
+    test: date?  # take-home or test task
+    technical: date?  # live coding, a peer or AI interview, the talk about the test
+    final: date?
+    offer: date?
+    next: str?  # the stage they promised and have not booked yet; delete it once it is booked
+    action: str?  # your human's own next move (playbook.md section 16)
+    action_date: date?  # when it is due; none when they only wait, and then the action says so
+    outcome: rejected|filled|cancelled|no-response|incomplete|declined|hired?  # none while alive
+    outcome_date: date?
+    gated: bool?  # on rejected, filled and no-response only: did a form or location rule fire
+    notes: str?  # the apply note (channel, CV version, what to ask on the first call), then contacts and what was said
+---
+applications:
+  - id: 4b1e9c07
+    company: Acme Analytics
+    role: Senior Data Engineer
+    url: https://careers.acme.example/jobs/data-engineer
+    source: ats-sweep
+    added: 2026-11-18
+    by: job sweep
+    why: Remote EU, posted range above the floor, the stack they run
+    status: new
+  - id: 9d03a5f2
+    company: Northwind Labs
+    role: Staff Platform Engineer
+    url: https://jobs.northwind.example/platform-engineer
+    source: linkedin
+    added: 2026-10-02
+    by: job sweep
+    why: Remote Europe, platform team, B2B allowed
+    status: applied
+    applied: 2026-10-02
+    recruiter: 2026-10-09
+    hm: 2026-10-16
+    next: technical round, the recruiter books it
+    action: Wait for the booking; nudge the recruiter if nothing by 30 Oct
+    action_date: 2026-10-30
+    notes: Ashby form, platform CV. Ask about the payer and the office days on the first call. Recruiter call went well; range not discussed yet.
+  - id: c72f0e18
+    company: Globex Payments
+    role: Data Platform Engineer
+    url: https://globex.example/careers/data-platform
+    source: hn-whoishiring
+    added: 2026-09-21
+    by: job sweep
+    why: Remote Europe, payments data
+    status: applied
+    applied: 2026-09-21
+    outcome: rejected
+    outcome_date: 2026-09-24
+    gated: false
+    notes: Greenhouse form, data CV, no free text. Form letter after 3 days, no contact before.
